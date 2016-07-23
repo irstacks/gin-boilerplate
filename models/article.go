@@ -34,26 +34,30 @@ func (m ArticleModel) Create(userID int64, form forms.ArticleForm) (articleID in
 		return 0, errors.New("User doesn't exist")
 	}
 
-	_, err = getDb.Exec("INSERT INTO article(user_id, title, content, updated_at, created_at) VALUES($1, $2, $3, $4, $5) RETURNING id", userID, form.Title, form.Content, time.Now().Unix(), time.Now().Unix())
-
+	// FIQ: Why RETURNING id when _?
+	// _, err = getDb.Exec("INSERT INTO article(user_id, title, content, updated_at, created_at) VALUES($1, $2, $3, $4, $5) RETURNING id", userID, form.Title, form.Content, time.Now().Unix(), time.Now().Unix())
+	_, err = getDb.Query(`INSERT INTO article(user_id, title, content, updated_at, created_at) VALUES($1, $2, $3, $4, $5) RETURNING id`, userID, form.Title, form.Content, time.Now().Unix(), time.Now().Unix())
 	if err != nil {
 		return 0, err
 	}
 
-	articleID, err = getDb.SelectInt("SELECT id FROM article WHERE user_id=$1 ORDER BY id DESC LIMIT 1", userID)
+	// articleID, err = getDb.SelectInt("SELECT id FROM article WHERE user_id=$1 ORDER BY id DESC LIMIT 1", userID)
+	articleID, err = getDb.Query(`SELECT id FROM article WHERE user_id=$1 ORDER BY id DESC LIMIT 1`.userID)
 
 	return articleID, err
 }
 
 //One ...
 func (m ArticleModel) One(userID, id int64) (article Article, err error) {
-	err = db.GetDB().SelectOne(&article, "SELECT a.id, a.title, a.content, a.updated_at, a.created_at, json_build_object('id', u.id, 'name', u.name, 'email', u.email) AS user FROM article a LEFT JOIN public.user u ON a.user_id = u.id WHERE a.user_id=$1 AND a.id=$2 GROUP BY a.id, a.title, a.content, a.updated_at, a.created_at, u.id, u.name, u.email LIMIT 1", userID, id)
+	// err = db.GetDB().SelectOne(&article, "SELECT a.id, a.title, a.content, a.updated_at, a.created_at, json_build_object('id', u.id, 'name', u.name, 'email', u.email) AS user FROM article a LEFT JOIN public.user u ON a.user_id = u.id WHERE a.user_id=$1 AND a.id=$2 GROUP BY a.id, a.title, a.content, a.updated_at, a.created_at, u.id, u.name, u.email LIMIT 1", userID, id)
+	err = db.GetDB().Query(`SELECT a.id, a.title, a.content, a.updated_at, a.created_at, json_build_object('id', u.id, 'name', u.name, 'email', u.email) AS user FROM article a LEFT JOIN public.user u ON a.user_id = u.id WHERE a.user_id=$1 AND a.id=$2 GROUP BY a.id, a.title, a.content, a.updated_at, a.created_at, u.id, u.name, u.email LIMIT 1`, userID, id).Scan(&article)
 	return article, err
 }
 
 //All ...
 func (m ArticleModel) All(userID int64) (articles []Article, err error) {
-	_, err = db.GetDB().Select(&articles, "SELECT a.id, a.title, a.content, a.updated_at, a.created_at, json_build_object('id', u.id, 'name', u.name, 'email', u.email) AS user FROM article a LEFT JOIN public.user u ON a.user_id = u.id WHERE a.user_id=$1 GROUP BY a.id, a.title, a.content, a.updated_at, a.created_at, u.id, u.name, u.email ORDER BY a.id DESC", userID)
+	// _, err = db.GetDB().Select(&articles, "SELECT a.id, a.title, a.content, a.updated_at, a.created_at, json_build_object('id', u.id, 'name', u.name, 'email', u.email) AS user FROM article a LEFT JOIN public.user u ON a.user_id = u.id WHERE a.user_id=$1 GROUP BY a.id, a.title, a.content, a.updated_at, a.created_at, u.id, u.name, u.email ORDER BY a.id DESC", userID)
+	_, err = db.GetDB().Query(`SELECT a.id, a.title, a.content, a.updated_at, a.created_at, json_build_object('id', u.id, 'name', u.name, 'email', u.email) AS user FROM article a LEFT JOIN public.user u ON a.user_id = u.id WHERE a.user_id=$1 GROUP BY a.id, a.title, a.content, a.updated_at, a.created_at, u.id, u.name, u.email ORDER BY a.id DESC`, userID).Scan(&articles)
 	return articles, err
 }
 
@@ -65,7 +69,8 @@ func (m ArticleModel) Update(userID int64, id int64, form forms.ArticleForm) (er
 		return errors.New("Article not found")
 	}
 
-	_, err = db.GetDB().Exec("UPDATE article SET title=$1, content=$2, updated_at=$3 WHERE id=$4", form.Title, form.Content, time.Now().Unix(), id)
+	// _, err = db.GetDB().Exec("UPDATE article SET title=$1, content=$2, updated_at=$3 WHERE id=$4", form.Title, form.Content, time.Now().Unix(), id)
+	_, err = db.GetDB().Query(`UPDATE article SET title=$1, content=$2, updated_at=$3 WHERE id=$4`, form.Title, form.Content, time.Now().Unix(), id)
 
 	return err
 }
@@ -78,7 +83,8 @@ func (m ArticleModel) Delete(userID, id int64) (err error) {
 		return errors.New("Article not found")
 	}
 
-	_, err = db.GetDB().Exec("DELETE FROM article WHERE id=$1", id)
+	// _, err = db.GetDB().Exec("DELETE FROM article WHERE id=$1", id)
+	_, err = db.GetDB().Query(`DELETE FROM article WHERE id=$1`, id)
 
 	return err
 }

@@ -26,8 +26,8 @@ type UserModel struct{}
 //Signin ...
 func (m UserModel) Signin(form forms.SigninForm) (user User, err error) {
 
-	err = db.GetDB().SelectOne(&user, "SELECT id, email, password, name, updated_at, created_at FROM public.user WHERE email=LOWER($1) LIMIT 1", form.Email)
-
+	// err = db.GetDB().SelectOne(&user, "SELECT id, email, password, name, updated_at, created_at FROM public.user WHERE email=LOWER($1) LIMIT 1", form.Email)
+	err = db.GetDB().Query(`SELECT id, email, password, name, updated_at, created_at FROM public.user WHERE email=LOWER($1) LIMIT 1`, form.Email).Scan(&user)
 	if err != nil {
 		return user, err
 	}
@@ -48,8 +48,8 @@ func (m UserModel) Signin(form forms.SigninForm) (user User, err error) {
 func (m UserModel) Signup(form forms.SignupForm) (user User, err error) {
 	getDb := db.GetDB()
 
-	checkUser, err := getDb.SelectInt("SELECT count(id) FROM public.user WHERE email=LOWER($1) LIMIT 1", form.Email)
-
+	// checkUser, err := getDb.SelectInt("SELECT count(id) FROM public.user WHERE email=LOWER($1) LIMIT 1", form.Email)
+	checkUser, err := getDb.Query(`SELECT count(id) FROM public.user WHERE email=LOWER($1) LIMIT 1`, form.Email)
 	if err != nil {
 		return user, err
 	}
@@ -64,10 +64,11 @@ func (m UserModel) Signup(form forms.SignupForm) (user User, err error) {
 		panic(err)
 	}
 
-	res, err := getDb.Exec("INSERT INTO public.user(email, password, name, updated_at, created_at) VALUES($1, $2, $3, $4, $5) RETURNING id", form.Email, string(hashedPassword), form.Name, time.Now().Unix(), time.Now().Unix())
+	res, err := getDb.Query("INSERT INTO public.user(email, password, name, updated_at, created_at) VALUES($1, $2, $3, $4, $5) RETURNING id", form.Email, string(hashedPassword), form.Name, time.Now().Unix(), time.Now().Unix())
 
 	if res != nil && err == nil {
-		err = getDb.SelectOne(&user, "SELECT id, email, name, updated_at, created_at FROM public.user WHERE email=LOWER($1) LIMIT 1", form.Email)
+		// err = getDb.SelectOne(&user, "SELECT id, email, name, updated_at, created_at FROM public.user WHERE email=LOWER($1) LIMIT 1", form.Email)
+		err = getDb.Query(`SELECT id, email, name, updated_at, created_at FROM public.user WHERE email=LOWER($1) LIMIT 1`, form.Email).Scan(&user)
 		if err == nil {
 			return user, nil
 		}
@@ -78,6 +79,7 @@ func (m UserModel) Signup(form forms.SignupForm) (user User, err error) {
 
 //One ...
 func (m UserModel) One(userID int64) (user User, err error) {
-	err = db.GetDB().SelectOne(&user, "SELECT id, email, name FROM public.user WHERE id=$1", userID)
+	// err = db.GetDB().SelectOne(&user, "SELECT id, email, name FROM public.user WHERE id=$1", userID)
+	err = db.GetDB().Query(`SELECT id, email, name FROM public.user WHERE id=$1`, userID).Scan(&user)
 	return user, err
 }

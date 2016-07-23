@@ -24,17 +24,17 @@ func (j JSONRaw) Value() (driver.Value, error) {
 }
 
 //Scan ...
-func (j *JSONRaw) Scan(src interface{}) error {
-	asBytes, ok := src.([]byte)
-	if !ok {
-		return error(errors.New("Scan source was not []bytes"))
-	}
-	err := json.Unmarshal(asBytes, &j)
-	if err != nil {
-		return error(errors.New("Scan could not unmarshal to []string"))
-	}
-	return nil
-}
+// func (j *JSONRaw) Scan(src interface{}) error {
+// 	asBytes, ok := src.([]byte)
+// 	if !ok {
+// 		return error(errors.New("Scan source was not []bytes"))
+// 	}
+// 	err := json.Unmarshal(asBytes, &j)
+// 	if err != nil {
+// 		return error(errors.New("Scan could not unmarshal to []string"))
+// 	}
+// 	return nil
+// }
 
 //MarshalJSON ...
 func (j *JSONRaw) MarshalJSON() ([]byte, error) {

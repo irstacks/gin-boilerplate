@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-gorp/gorp"
-	_ "github.com/lib/pq" //import postgres
+	_ "github.com/lib/pq"
 )
 
 //DB ...
@@ -23,7 +22,7 @@ const (
 	DbName = "golang_gin_db"
 )
 
-var db *gorp.DbMap
+var db *sql.DB
 
 //Init ...
 func Init() {
@@ -40,7 +39,7 @@ func Init() {
 }
 
 //ConnectDB ...
-func ConnectDB(dataSourceName string) (*gorp.DbMap, error) {
+func ConnectDB(dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
 		return nil, err
@@ -48,12 +47,11 @@ func ConnectDB(dataSourceName string) (*gorp.DbMap, error) {
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
-	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-	//dbmap.TraceOn("[gorp]", log.New(os.Stdout, "golang-gin:", log.Lmicroseconds)) //Trace database requests
-	return dbmap, nil
+
+	return db, nil
 }
 
 //GetDB ...
-func GetDB() *gorp.DbMap {
+func GetDB() *sql.DB {
 	return db
 }
